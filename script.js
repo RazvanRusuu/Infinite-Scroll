@@ -1,10 +1,10 @@
 "use strict";
-
+import { apiKey, getElement, formatDate, getJSON } from "./src/config.js";
 const initialCount = 5;
-const apiKey = "Bu0_OVe4HMM1G8KCTKD_bxjBdOKzDhKz84H6_0jScHE";
-let apiUrl = `https://api.unsplash.com/photos/random/?client_id=${apiKey}&count=${initialCount}`;
-// prettier-ignore
+const photosContainer = getElement(".image-container");
+const loader = getElement(".loader");
 
+let apiUrl = `https://api.unsplash.com/photos/random/?client_id=${apiKey}&count=${initialCount}`;
 let isInitialLoad = true;
 let ready = false;
 let imagesLoaded = 0;
@@ -16,20 +16,6 @@ function updateAPIURLWithNewCount(picCount) {
   apiUrl = `https://api.unsplash.com/photos/random?client_id=${apiKey}&count=${picCount}`;
 }
 
-const getElement = function (element) {
-  return document.querySelector(element);
-};
-
-const formatDate = function (date) {
-  const dateObj = new Date(date);
-  const newDate = Intl.DateTimeFormat("en-US", {
-    dateStyle: "long",
-  }).format(dateObj);
-  return newDate;
-};
-const photosContainer = getElement(".image-container");
-const loader = getElement(".loader");
-
 const imageLoaded = function () {
   imagesLoaded++;
   if (imagesLoaded === state.photos.length) {
@@ -38,40 +24,14 @@ const imageLoaded = function () {
   }
 };
 
-const getJSON = async function (url) {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) return new Error(`${response.status}`);
-    const data = await response.json();
-    return data;
-  } catch (err) {
-    throw err;
-  }
-};
-
 const getPhotos = async function () {
   try {
     const photos = await getJSON(apiUrl);
     state.photos = photos.map((photo) => {
       // prettier-ignore
-      console.log(photo)
-      const {
-        likes,
-        description,
-        urls: { regular: url },
-        created_at: date,
-        views,
-        user: { name, portfolio_url },
+      const {likes,description,urls: { regular: url }, created_at: date,views,  user: { name, portfolio_url },
       } = photo;
-      return {
-        likes,
-        url,
-        date,
-        views,
-        name,
-        portfolio_url,
-        description,
-      };
+      return { likes, url, date, views, name, portfolio_url, description };
     });
     if (isInitialLoad) {
       updateAPIURLWithNewCount(30);
@@ -94,7 +54,6 @@ const renderPhotos = function (photos) {
 };
 
 const generateMarkup = function (photo) {
-  console.log(photo.date);
   return `
       <div class="img-box">
         <img
@@ -118,7 +77,7 @@ const generateMarkup = function (photo) {
 
   `;
 };
-const scrollPage = function (event) {
+const scrollPage = function () {
   if (
     window.innerHeight + window.scrollY >= document.body.offsetHeight - 1000 &&
     ready
